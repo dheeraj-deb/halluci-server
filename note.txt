@@ -1,0 +1,1 @@
+--watch 'src/**/*.ts' --exec './node_modules/.bin/ts-node'
