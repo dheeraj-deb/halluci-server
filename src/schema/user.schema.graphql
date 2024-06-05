@@ -1,0 +1,51 @@
+type Mutation {
+  registration(
+    name: String!
+    shopname: String!
+    phonenumber: String!
+    address: AddressInput!
+    password: String!
+  ): RegistrationResponse!
+  login(name: String!, password: String!): LoginResponse!
+}
+
+type Query {
+  getUsers: [User!]!
+}
+
+input AddressInput {
+  place: String
+  pincode: String
+  city: String
+  state: String
+  address: String!
+}
+
+type RegistrationResponse {
+  status: Int!
+  message: String!
+}
+
+type User {
+  id: ID!
+  name: String!
+  shopname: String!
+  phonenumber: String!
+  address: Address!
+  password: String!
+}
+
+type Address {
+  place: String!
+  pincode: String!
+  city: String!
+  state: String!
+  address: String!
+}
+
+type LoginResponse {
+  name: String!
+  token: String!
+  status: Int!
+  message: String!
+}

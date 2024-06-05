@@ -1,0 +1,50 @@
+type Mutation {
+  addToCart(userId: String!, product: ProductInput!): AddProductResponse!
+}
+
+type Query {
+  getCart(userId: String!): GetCartResponse!
+}
+
+type GetCartResponse {
+  grandTotal: Int!
+  products: [ProductWithDetails!]!
+}
+
+type ProductWithDetails {
+  product: Product!
+  variant: Variant
+}
+
+type Product {
+  name: String!
+  description: String!
+  category: ID!
+  price: Float!
+  image: String!
+  variations: [Variation!]!
+}
+
+type Variation {
+  image: String!
+  color: String!
+  _id: ID
+}
+
+type Variant {
+  image: String!
+  color: String!
+  _id: ID
+}
+
+type AddProductResponse {
+  status: Int!
+  message: String!
+}
+
+input ProductInput {
+  productId: ID!
+  variantId: ID!
+  quantity: Int!
+}
+

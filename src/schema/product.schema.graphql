@@ -1,0 +1,21 @@
+type Mutation {
+  addProduct(
+    name: String!
+    price: Float!
+    description: String!
+    category: String!
+    stock: Int!
+    image: String!
+    variations: [VariationInput!]!
+  ): AddProductResponse!
+}
+
+input VariationInput {
+  color: String!
+  image: String!
+}
+
+type AddProductResponse {
+  status: Int!
+  message: String!
+}
