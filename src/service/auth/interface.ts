@@ -19,7 +19,13 @@ export interface RegistrationResponse {
   message: string;
 }
 
-export interface LoginInput {
-  name: string;
-  password: string;
+
+export interface SendOtpInput {
+  phone: string;
 }
+
+export interface VerifyOtpInput {
+  phone: string;
+  otp: string;
+}
+

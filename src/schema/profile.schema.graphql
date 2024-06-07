@@ -1,9 +1,6 @@
 type Query {
-  getUsers: [User!]!
+  getProfile: ProfileRes!
 }
-
-
-
 
 type User {
   id: ID!
@@ -20,4 +17,9 @@ type Address {
   city: String!
   state: String!
   address: String!
+}
+
+type ProfileRes{
+    data:User!
+    status:Int!
 }

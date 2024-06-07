@@ -1,0 +1,35 @@
+# schema.graphql
+type Mutation {
+  registration(
+    name: String!
+    shopname: String!
+    phonenumber: String!
+    address: AddressInput!
+    password: String!
+  ): RegistrationResponse!
+  sendOtp(phone: String!): OTPSendResponse!
+  verifyOtp(phone: String!, otp: String!): OTPSendResponse!
+}
+
+type VerificationResponse {
+  token: String!
+  status: Int!
+  message: String!
+}
+
+type OTPSendResponse {
+  status: Int!
+  message: String!
+}
+
+type RegistrationResponse {
+  status: Int!
+  message: String!
+}
+
+input AddressInput {
+  street: String!
+  city: String!
+  state: String!
+  postalCode: String!
+}

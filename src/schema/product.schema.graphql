@@ -9,6 +9,10 @@ type Mutation {
     variations: [VariationInput!]!
   ): AddProductResponse!
 }
+type Query  {
+  getProducts: [ProductResponse!]!
+  getProduct(id: String!): ProductResponse!
+}
 
 input VariationInput {
   color: String!
@@ -18,4 +22,23 @@ input VariationInput {
 type AddProductResponse {
   status: Int!
   message: String!
+}
+
+
+type ProductResponse {
+  _id:String!
+  name: String!
+  description: String!
+  category: String!
+  price: Int!
+  image: String!
+  variations: [VariationsSchema!]!
+}
+type VariationsSchema {
+  color: String!
+  image: String!
+}
+
+type Category {
+  _id: String
 }
