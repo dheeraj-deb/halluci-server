@@ -19,7 +19,8 @@ type Address {
   address: String!
 }
 
-type ProfileRes{
-    data:User!
-    status:Int!
+type ProfileRes {
+  _id: String!
+  data: User!
+  status: Int!
 }

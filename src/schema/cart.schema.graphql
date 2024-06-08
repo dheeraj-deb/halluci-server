@@ -1,5 +1,5 @@
 type Mutation {
-  addToCart(userId: String!, product: ProductInput!): AddProductResponse!
+  addToCart(userId: String!, productId: String!, products: [ProductInput!]!): AddProductResponse!
 }
 
 type Query {
@@ -7,34 +7,36 @@ type Query {
 }
 
 type GetCartResponse {
-  grandTotal: Int!
+  grandTotal: Float!
   products: [ProductWithDetails!]!
 }
 
 type ProductWithDetails {
-  product: Product!
-  variant: Variant
+  product: ProductWithTotal!
+  variantDetails: [VariantDetail!]!
 }
 
-type Product {
+type ProductWithTotal {
   name: String!
   description: String!
   category: ID!
   price: Float!
   image: String!
   variations: [Variation!]!
+  total: Float!  # Total for the current product
 }
 
 type Variation {
   image: String!
   color: String!
-  _id: ID
+  _id: ID!
 }
 
-type Variant {
-  image: String!
-  color: String!
-  _id: ID
+type VariantDetail {
+  variantId: ID!
+  quantity: Int!
+  image: String
+  color: String
 }
 
 type AddProductResponse {
@@ -43,8 +45,6 @@ type AddProductResponse {
 }
 
 input ProductInput {
-  productId: ID!
   variantId: ID!
   quantity: Int!
 }
-
