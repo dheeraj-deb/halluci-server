@@ -2,7 +2,7 @@ import User from "../../models/user.model";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { RegisterInput, RegistrationResponse, SendOtpInput, VerifyOtpInput } from "./interface";
-import { ConflictException, UnauthorizedException } from "../../utils/errors";
+import { ConflictException, UnauthorizedException, NotFoundException } from "../../utils/errors";
 import OTP from "../../models/otp.model";
 import { comparePassword, encryptPassword } from "../../libs/bcrypt";
 import otpGenerator from "../../utils/otpGenerator";
@@ -10,9 +10,9 @@ import { StatusCodes } from "http-status-codes";
 
 export const registration = async (
     _: any,
-    { name, shopname, phonenumber, address, password }: RegisterInput
+    { name, shopname, phone, address,  }: RegisterInput
 ): Promise<RegistrationResponse> => {
-    const user = new User({ name, shopname, phonenumber, address, password });
+    const user = new User({ name, shopname, phone, address });
     await user.save();
     return {
         status: 200,
@@ -20,12 +20,14 @@ export const registration = async (
     };
 };
 
-export const verifyOtp = async (_: any, { phone, otp }: VerifyOtpInput, context: Record<string, any>) => {
+export const  verifyOtpWhileRegistering= async (_: any, { phone, otp }: VerifyOtpInput, context: Record<string, any>) => {
     const userExist = await User.findOne({ phone })
-    if (userExist) throw new ConflictException("Student already exist on this number")
+    console.log(userExist,"user does exit");
+    
+    if(userExist)  throw new ConflictException("User already exist")
     const otpRecord = await OTP.findOne({ phone, used: false }).lean()
     if (!otpRecord) throw new UnauthorizedException("Invalid OTP")
-    const validOtp = comparePassword(otp, otpRecord.otp)
+    const validOtp = await comparePassword(otp, otpRecord.otp)
 
 
     if (!validOtp)
@@ -35,13 +37,40 @@ export const verifyOtp = async (_: any, { phone, otp }: VerifyOtpInput, context:
     await OTP.updateOne({ phone }, { $set: { used: true } })
     console.log({ phone, otp });
 
-    const token = jwt.sign({phone}, process.env.JWT_SECRET || "dev0", { expiresIn: "1hr" })
+    const token = jwt.sign({ phone }, userExist ? process.env.JWT_SECRET || "dev0" : "regKey", { expiresIn: "1hr" })
     console.log(context);
-    
+
     context.res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
     return { message: `The phone number ${phone} has been verified`, token, status: 200 };
 };
+export const verifyOtpWhileLogin = async (_: any, { phone, otp }: VerifyOtpInput, context: Record<string, any>) => {
+    const userExist = await User.findOne({ phone })
+    if (!userExist) throw new NotFoundException("User not found")
+    const otpRecord = await OTP.findOne({ phone, used: false }).lean()
+    if (!otpRecord) throw new UnauthorizedException("Invalid OTP")
 
+    const validOtp = await comparePassword(otp, otpRecord.otp)
+    console.log(validOtp,otp,otpRecord.otp,'otp');
+    
+
+
+    if (!validOtp)
+        throw new UnauthorizedException(
+            `The phone number ${phone} has not been verified`,
+        );
+    await OTP.updateOne({ phone }, { $set: { used: true } })
+    console.log({ phone, otp });
+
+    const token = jwt.sign({ phone }, userExist ? process.env.JWT_SECRET || "dev0" : "regKey", { expiresIn: "1hr" })
+    console.log(context);
+
+    context.res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+    return { message: `The phone number ${phone} has been verified`, token, status: 200 };
+};
+const logout = (_: any, {}, context: Record<string, any>)=>{
+    context.res.cookie('token', "", { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 0 });
+
+}
 const messagingService = {
     async send(phone: string) {
         // const otp = await otpGenerator(4) ⭕ uncomment this line when messaging service activates
@@ -92,11 +121,15 @@ export const sendOtp = async (_: any, { phone }: SendOtpInput, context: Record<s
         const encryptedOtp = await encryptPassword(otp)
         await OTP.deleteMany({ phone })
         await OTP.create({ otp: encryptedOtp, phone: phone })
-        return { message: `OTP successfully sent to ${phone}`, status: 200}
+        return { message: `OTP successfully sent to ${phone}`, status: 200 }
     } catch (err) {
         console.log(err);
         return { status: 500, message: "Something went wrong" }
     }
 };
 
+
+export async function doesUserExist(phone: string) {
+    return await User.exists({ phone: phone })
+}
 

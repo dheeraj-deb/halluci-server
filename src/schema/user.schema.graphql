@@ -9,9 +9,9 @@ type User {
   id: ID!
   name: String!
   shopname: String!
-  phonenumber: String!
+  phone: String!
   address: Address!
-  password: String!
+
 }
 
 type Address {

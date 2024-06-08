@@ -3,12 +3,12 @@ type Mutation {
   registration(
     name: String!
     shopname: String!
-    phonenumber: String!
+    phone: String!
     address: AddressInput!
-    password: String!
   ): RegistrationResponse!
   sendOtp(phone: String!): OTPSendResponse!
-  verifyOtp(phone: String!, otp: String!): OTPSendResponse!
+  verifyOtpWhileLogin(phone: String!, otp: String!): OTPSendResponse!
+  verifyOtpWhileRegistering(phone: String!, otp: String!): OTPSendResponse!
 }
 
 type VerificationResponse {

@@ -16,10 +16,10 @@ const JwtConfig = {
 
 }
 const passportJwtAuth = new JwtStrategy(JwtConfig, async (payload, done) => {
-    console.log("reached",payload);
+   
     
     try {
-        const user = await userModel.findOne({ phonenumber: payload.phone }).select('-password')
+        const user = await userModel.findOne({ phone: payload.phone })
         if (!user) return done(null, false)
         done(null, user)
     } catch (err) {

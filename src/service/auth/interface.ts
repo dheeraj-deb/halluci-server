@@ -9,9 +9,8 @@ export interface Address {
 export interface RegisterInput {
   name: string;
   shopname: string;
-  phonenumber: string;
+  phone: string;
   address: Address;
-  password: string;
 }
 
 export interface RegistrationResponse {
