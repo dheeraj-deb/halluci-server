@@ -6,22 +6,28 @@ const CartSchema = new Schema({
     required: true,
     ref: "User",
   },
-  products: [{
-    productId: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      ref: "Product",
-    },
-    variantId:{
+  products: [
+    {
+      productId: {
         type: Schema.Types.ObjectId,
         required: true,
-        ref: "Product.variations",
+        ref: "Product",
+      },
+      variants: [
+        {
+          variantId: {
+            type: Schema.Types.ObjectId,
+            required: true,
+            ref: "Product.variations",
+          },
+          quantity: {
+            type: Number,
+            required: true,
+          },
+        },
+      ],
     },
-    quantity: {
-      type: Number,
-      required: true,
-    },
-  }],
+  ],
 });
 
 export default mongoose.model("Cart", CartSchema);

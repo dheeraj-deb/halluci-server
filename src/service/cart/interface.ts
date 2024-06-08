@@ -2,9 +2,10 @@ import { ObjectId } from "mongoose";
 
 export interface AddToCartInput {
   userId: string;
-  product: {
-    productId: ObjectId;
+  productId: ObjectId;
+  products: {
     variantId: ObjectId;
     quantity: number;
-  };
+  }[];
 }
+

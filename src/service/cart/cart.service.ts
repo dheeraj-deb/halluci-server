@@ -4,101 +4,135 @@ import { validateUser } from "../../utils/validateUser";
 import { AddToCartInput } from "./interface";
 
 export const addToCart = async (_: any, input: AddToCartInput) => {
-  const { userId, product } = input;
+  const { userId, products, productId } = input;
 
   await validateUser(userId);
 
-  const productResponse = (await Product.findById(product.productId)) || null;
-  if (!productResponse) {
-    throw new Error("Invalid product id");
-  }
-
-  const variant = productResponse?.variations?.find(
-    (variant) => variant?._id?.toString() === product?.variantId?.toString()
-  );
-
-  if (!variant) {
-    throw new Error("Invalid variant ID");
-  }
-
-  let cart = await Cart.findById(userId);
+  let cart = await Cart.findOne({ userId });
 
   if (!cart) {
     cart = new Cart({
-      userId: userId,
+      userId,
       products: [],
     });
   }
 
-  const productInCart = cart.products.find(
-    (item) => item.variantId.toString() === product.variantId.toString()
-  );
+  for (const product of products) {
+    const productResponse = await Product.findById(productId);
+    if (!productResponse) {
+      throw new Error("Invalid product id");
+    }
 
-  if (productInCart) {
-    productInCart.quantity += product.quantity;
-  } else {
-    cart.products.push({
-      productId: product.productId,
-      quantity: product.quantity,
-      variantId: product.variantId,
-    });
+    const variant = productResponse.variations.find(
+      (v) => v?._id?.toString() === product.variantId.toString()
+    );
+
+    if (!variant) {
+      throw new Error("Invalid variant ID");
+    }
+
+    const productInCart = cart.products.find(
+      (p) => String(p.productId) === String(productId)
+    );
+
+    if (productInCart) {
+      const variantInProduct = productInCart?.variants.find(
+        (v) => v.variantId.toString() === product.variantId.toString()
+      );
+
+      if (variantInProduct) {
+        variantInProduct.quantity += product.quantity;
+      } else {
+        productInCart.variants.push({
+          variantId: product.variantId,
+          quantity: product.quantity,
+        });
+      }
+    } else {
+      cart.products.push({
+        productId: productId,
+        variants: [
+          {
+            variantId: product.variantId,
+            quantity: product.quantity,
+          },
+        ],
+      });
+    }
   }
 
   await cart.save();
 
   return {
     status: 200,
-    message: "Product added to cart successfully",
+    message: "Products added to cart successfully",
   };
 };
 
 export const getCart = async (_: any, input: { userId: string }) => {
   const { userId } = input;
 
+  // Assuming validateUser is a function that validates the user
   await validateUser(userId);
 
-  let carts = await Cart.find({ userId }).populate("products.productId");
+  let cart = await Cart.findOne({ userId });
 
-  if (!carts.length) {
+  console.log("cart", cart);
+
+  if (!cart) {
     throw new Error("Cart not found");
   }
 
-  let totalGrandTotal = 0;
-  let allProducts: { product: any; variant: any }[] = [];
+  let grandTotal = 0;
+  const productsWithDetails = await Promise.all(cart.products.map(async (product) => {
+    const productDetails = await Product.findById(product.productId);
 
-  await Promise.all(
-    carts.map(async (cart) => {
-      let grandTotal = 0;
+    if (productDetails) {
+      let productTotal = 0;
+      let totalVariantCount = 0;
 
-      const productsWithDetails = await Promise.all(
-        cart.products.map(async (product) => {
-          const productDetails = await Product.findById(product.productId);
+      const variantDetails = product.variants.map((variant) => {
+        const variantDetail = productDetails?.variations.find(
+          (variation) =>
+            variation?._id?.toString() === variant.variantId.toString()
+        );
 
-          if (productDetails && productDetails.price) {
-            grandTotal += productDetails.price * product.quantity;
-          }
+        const variantPrice = variant.quantity * productDetails?.price;
+        productTotal += variantPrice;
+        totalVariantCount += variant.quantity;
 
-          const variant = productDetails?.variations?.find(
-            (variant) =>
-              variant &&
-              variant._id &&
-              variant._id.toString() === product.variantId.toString()
-          );
+        return {
+          variantId: variant.variantId,
+          quantity: variant.quantity,
+          image: variantDetail?.image,
+          color: variantDetail?.color,
+        };
+      });
 
-          return {
-            product: productDetails,
-            variant,
-          };
-        })
-      );
+      if (totalVariantCount > 10) {
+        productTotal *= 0.95; // Apply 5% discount
+      }
 
-      totalGrandTotal += grandTotal;
-      allProducts = [...allProducts, ...productsWithDetails];
-    })
-  );
+      grandTotal += productTotal;
+
+      return {
+        product: {
+          name: productDetails.name,
+          description: productDetails.description,
+          category: productDetails.category,
+          price: productDetails.price,
+          image: productDetails.image,
+          variations: productDetails.variations,
+          total: productTotal, // Total for the current product
+        },
+        variantDetails,
+      };
+    }
+  }));
 
   return {
-    grandTotal: totalGrandTotal,
-    products: allProducts,
+    grandTotal,
+    products: productsWithDetails,
   };
 };
+
