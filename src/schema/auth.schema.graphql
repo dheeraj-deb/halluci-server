@@ -9,10 +9,25 @@ type Mutation {
   sendOtp(phone: String!): OTPSendResponse!
   verifyOtpWhileLogin(phone: String!, otp: String!): OTPSendResponse!
   verifyOtpWhileRegistering(phone: String!, otp: String!): OTPSendResponse!
+
+  registerAdmin(
+    name: String!
+    password: String!
+    username: String!
+  ): registerAdminResponse!
+
+  loginAdmin(password: String!, username: String!): LoginResponse!
+
+  logout:DefaultResponse!
 }
 
 type VerificationResponse {
   token: String!
+  status: Int!
+  message: String!
+}
+
+type registerAdminResponse {
   status: Int!
   message: String!
 }
@@ -32,4 +47,13 @@ input AddressInput {
   city: String!
   state: String!
   postalCode: String!
+}
+type LoginResponse {
+  status: Int!
+  message: String!
+  token: String!
+}
+type DefaultResponse{
+  status:String!
+  message:String!
 }

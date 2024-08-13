@@ -18,7 +18,7 @@ const AddressSchema = new mongoose.Schema({
     type: String,
     // required: true,
   },
-  
+
 });
 
 const UserSchema = new mongoose.Schema({
@@ -26,24 +26,29 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  username:{
+  username: {
     type: String,
     required: false,
   },
   shopname: {
     type: String,
-    required: true,
+
   },
   phone: {
     type: String,
-    required: true,
+
   },
   address: AddressSchema,
-
+  password: String,
   verified: {
     type: Boolean,
     default: false,
   },
+  role: {
+    enum: ["admin", "user"],
+    default: "user",
+    type: String
+  }
 });
 
 

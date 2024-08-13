@@ -1,7 +1,7 @@
 import User from "../../models/user.model";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { RegisterInput, RegistrationResponse, SendOtpInput, VerifyOtpInput } from "./interface";
+import { LoginResponse, RegisterAdminInput, RegisterInput, RegistrationResponse, SendOtpInput, VerifyOtpInput } from "./interface";
 import { ConflictException, UnauthorizedException, NotFoundException } from "../../utils/errors";
 import OTP from "../../models/otp.model";
 import { comparePassword, encryptPassword } from "../../libs/bcrypt";
@@ -10,7 +10,7 @@ import { StatusCodes } from "http-status-codes";
 
 export const registration = async (
     _: any,
-    { name, shopname, phone, address,  }: RegisterInput
+    { name, shopname, phone, address, }: RegisterInput
 ): Promise<RegistrationResponse> => {
     const user = new User({ name, shopname, phone, address });
     await user.save();
@@ -20,11 +20,52 @@ export const registration = async (
     };
 };
 
-export const  verifyOtpWhileRegistering= async (_: any, { phone, otp }: VerifyOtpInput, context: Record<string, any>) => {
+export const registerAdmin = async (
+    _: any,
+    { name, username, password }: RegisterAdminInput
+): Promise<RegistrationResponse> => {
+
+    const exitingAdmin = await User.findOne({ username, role: "admin" })
+    if (exitingAdmin) throw new ConflictException("Admin already exist");
+    password = await bcrypt.hash(password, 10)
+
+    const user = new User({ name, username, password, role: "admin" });
+    await user.save();
+    return {
+        status: 200,
+        message: "User Registered Successfully",
+    };
+};
+
+
+export const loginAdmin = async (
+    _: any,
+    { name, username, password }: RegisterAdminInput,
+    context: Record<string, any>
+): Promise<LoginResponse> => {
+
+    const exitingAdmin = await User.findOne({ username, role: "admin" })
+    if (!exitingAdmin) throw new NotFoundException("No admin exist");
+    if (!exitingAdmin?.password) throw new NotFoundException("No password exist for this user");
+    const isValidPassword = await bcrypt.compare(password, exitingAdmin?.password)
+    if (!isValidPassword) throw new UnauthorizedException("Invalid password")
+
+    const token = jwt.sign({ username }, exitingAdmin ? process.env.JWT_SECRET || "dev0" : "regKey", { expiresIn: "1hr" })
+    console.log(context);
+
+    context.res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+    return { message: `Successfully logged in`, token, status: 200 };
+
+
+};
+
+
+
+export const verifyOtpWhileRegistering = async (_: any, { phone, otp }: VerifyOtpInput, context: Record<string, any>) => {
     const userExist = await User.findOne({ phone })
-    console.log(userExist,"user does exit");
-    
-    if(userExist)  throw new ConflictException("User already exist")
+    console.log(userExist, "user does exit");
+
+    if (userExist) throw new ConflictException("User already exist")
     const otpRecord = await OTP.findOne({ phone, used: false }).lean()
     if (!otpRecord) throw new UnauthorizedException("Invalid OTP")
     const validOtp = await comparePassword(otp, otpRecord.otp)
@@ -50,8 +91,8 @@ export const verifyOtpWhileLogin = async (_: any, { phone, otp }: VerifyOtpInput
     if (!otpRecord) throw new UnauthorizedException("Invalid OTP")
 
     const validOtp = await comparePassword(otp, otpRecord.otp)
-    console.log(validOtp,otp,otpRecord.otp,'otp');
-    
+    console.log(validOtp, otp, otpRecord.otp, 'otp');
+
 
 
     if (!validOtp)
@@ -67,9 +108,9 @@ export const verifyOtpWhileLogin = async (_: any, { phone, otp }: VerifyOtpInput
     context.res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
     return { message: `The phone number ${phone} has been verified`, token, status: 200 };
 };
-const logout = (_: any, {}, context: Record<string, any>)=>{
+export const logout = (_: any, { }, context: Record<string, any>) => {
     context.res.cookie('token', "", { httpOnly: true, secure: process.env.NODE_ENV === 'production', maxAge: 0 });
-
+    return { status: 200, message: "Successfully logged out" }
 }
 const messagingService = {
     async send(phone: string) {

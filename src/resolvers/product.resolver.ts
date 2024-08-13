@@ -1,9 +1,10 @@
-import { addProduct, getProduct, getProducts } from "../service/product/product.service";
+import { addProduct, getProduct, getProducts,getCategories } from "../service/product/product.service";
 
 export const product_resolvers = {
     Query: {
      getProducts,
-     getProduct
+     getProduct,
+     getCategories
     },
   Mutation: {
     addProduct: addProduct,

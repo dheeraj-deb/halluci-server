@@ -1,6 +1,9 @@
 type Query {
   getProfile: ProfileRes!
 }
+type Mutation {
+  updateProfile(verified: Boolean!, id: ID!): ProfileRes!
+}
 
 type User {
   id: ID!
@@ -8,7 +11,7 @@ type User {
   shopname: String!
   phone: String!
   address: Address!
-  
+  verified: Boolean!
 }
 
 type Address {
@@ -19,7 +22,7 @@ type Address {
   address: String!
 }
 
-type ProfileRes{
-    data:User!
-    status:Int!
+type ProfileRes {
+  data: User!
+  status: Int!
 }

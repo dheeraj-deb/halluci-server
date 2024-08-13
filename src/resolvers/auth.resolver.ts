@@ -1,4 +1,4 @@
-import { registration, verifyOtpWhileLogin,verifyOtpWhileRegistering, sendOtp } from "../service/auth/auth.service";
+import { registration, verifyOtpWhileLogin, verifyOtpWhileRegistering, sendOtp, registerAdmin, loginAdmin, logout } from "../service/auth/auth.service";
 
 
 export const authResolver = {
@@ -6,6 +6,9 @@ export const authResolver = {
         registration,
         sendOtp,
         verifyOtpWhileLogin,
-        verifyOtpWhileRegistering
+        verifyOtpWhileRegistering,
+        registerAdmin,
+        loginAdmin,
+        logout
     },
 };

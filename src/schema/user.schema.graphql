@@ -1,9 +1,11 @@
 type Query {
   getUsers: [User!]!
+  getUser(id: ID!): User!
 }
 
-
-
+type Mutation {
+  activate(id: ID!): ActiveRes!
+}
 
 type User {
   id: ID!
@@ -11,7 +13,7 @@ type User {
   shopname: String!
   phone: String!
   address: Address!
-
+  verified: Boolean!
 }
 
 type Address {
@@ -20,4 +22,9 @@ type Address {
   city: String!
   state: String!
   address: String!
+}
+
+type ActiveRes {
+  status: Int!
+  message: String!
 }

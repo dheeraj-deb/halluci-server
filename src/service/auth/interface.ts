@@ -13,6 +13,17 @@ export interface RegisterInput {
   address: Address;
 }
 
+export interface RegisterAdminInput {
+  name: string;
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  status: number;
+  message: string;
+  token: string
+}
 export interface RegistrationResponse {
   status: number;
   message: string;

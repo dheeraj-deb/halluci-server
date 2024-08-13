@@ -12,11 +12,13 @@ type Mutation {
 type Query {
   getProducts: [ProductResponse!]!
   getProduct(id: String!): ProductResponse!
+  getCategories:[Category!]!
 }
 
 input VariationInput {
   color: String!
   image: String!
+  size:String!
 }
 
 type AddProductResponse {
@@ -40,5 +42,6 @@ type VariationsSchema {
 }
 
 type Category {
-  _id: String
+  _id: ID!
+  label:String!
 }

@@ -27,6 +27,7 @@ export class UnauthorizedException extends GraphQLError {
                 },
             },
         });
+        this.message = message;
         this.name = 'UnauthorizedException';
     }
 }

@@ -1,9 +1,15 @@
 import User from "../models/user.model";
+import { activate, getUser, getUsers } from "../service/user/user.service";
 
 
 export const user_resolvers = {
   Query: {
-    getUsers: () => User.find(),
+    getUsers,
+    getUser,
+
   },
-  
+  Mutation: {
+    activate
+  }
+
 };
